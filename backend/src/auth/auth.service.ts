@@ -81,10 +81,15 @@ export class AuthService {
       });
 
       if (role === Role.STUDENT) {
+        let studentCode = registerDto.studentCode;
+        if (!studentCode) {
+          studentCode = `STU-${Date.now().toString().slice(-6)}`;
+        }
+
         const student = await tx.student.create({
           data: {
             userId: newUser.id,
-            studentCode: registerDto.studentCode!,
+            studentCode: studentCode,
             firstName: newUser.firstName,
             lastName: newUser.lastName,
           },
@@ -225,15 +230,7 @@ export class AuthService {
       );
     }
 
-    if (
-      createUserDto.role === Role.STUDENT &&
-      !createUserDto.studentCode
-    ) {
-      throw new ConflictException(
-        'studentCode is required when registering a student',
-      );
-    }
-
+    // studentCode is no longer required from frontend; auto-generated below if missing.
     // ==========================================
     // 3. CHECK USER EMAIL
     // ==========================================
@@ -315,7 +312,7 @@ export class AuthService {
               data: {
                 userId: newUser.id,
                 studentCode:
-                  createUserDto.studentCode!,
+                  createUserDto.studentCode || `STU-${Date.now().toString().slice(-6)}`,
                 firstName: newUser.firstName,
                 lastName: newUser.lastName,
 

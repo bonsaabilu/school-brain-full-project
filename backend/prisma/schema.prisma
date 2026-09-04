@@ -118,6 +118,8 @@ model Student {
   gender      String?
   address     String?
   phoneNumber String?
+  needsSupport Boolean @default(false)
+  riskScore   Float?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

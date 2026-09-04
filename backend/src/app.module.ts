@@ -15,6 +15,7 @@ import { ClassModule } from './classes/classes.module';
 import { SubjectModule } from './subjects/subjects.module';
 import { ClassSubjectsModule } from './class-subjects/class-subjects.module';
 import { EnrollmentModule } from './enrollment/enrollment.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { EnrollmentModule } from './enrollment/enrollment.module';
     EmailModule,
     ClassSubjectsModule,
     EnrollmentModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService],
