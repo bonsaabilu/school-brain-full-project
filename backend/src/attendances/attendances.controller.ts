@@ -1,34 +1,118 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { AttendancesService } from './attendances.service';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+
+
+
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
 
-@Controller('attendances')
-export class AttendancesController {
-  constructor(private readonly attendancesService: AttendancesService) {}
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PermissionGuard } from '../auth/guards/permission.guard';
+
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { RequirePermissions } from '../auth/decorators/permissions.decorator';
+
+import { Permission } from '@prisma/client';
+import type { User } from '@prisma/client';
+import { AttendanceService } from './attendances.service';
+
+@Controller('attendance')
+@UseGuards(JwtAuthGuard, PermissionGuard)
+export class AttendanceController {
+  constructor(
+    private readonly attendanceService: AttendanceService,
+  ) { }
 
   @Post()
-  create(@Body() createAttendanceDto: CreateAttendanceDto) {
-    return this.attendancesService.create(createAttendanceDto);
+  @RequirePermissions(
+    Permission.ATTENDANCE_CREATE,
+  )
+  create(
+    @Body() dto: CreateAttendanceDto,
+    @CurrentUser() currentUser: User,
+  ) {
+    return this.attendanceService.create(
+      dto,
+      currentUser,
+    );
   }
 
   @Get()
+  @RequirePermissions(
+    Permission.ATTENDANCE_READ,
+  )
   findAll() {
-    return this.attendancesService.findAll();
+    return this.attendanceService.findAll();
+  }
+
+  @Get('student/:studentId')
+  @RequirePermissions(
+    Permission.ATTENDANCE_READ,
+  )
+  findByStudent(
+    @Param('studentId') studentId: string,
+  ) {
+    return this.attendanceService.findByStudent(
+      studentId,
+    );
+  }
+
+  @Get('class-subject/:classSubjectId')
+  @RequirePermissions(
+    Permission.ATTENDANCE_READ,
+  )
+  findByClassSubject(
+    @Param('classSubjectId')
+    classSubjectId: string,
+  ) {
+    return this.attendanceService.findByClassSubject(
+      classSubjectId,
+    );
   }
 
   @Get(':id')
+  @RequirePermissions(
+    Permission.ATTENDANCE_READ,
+  )
   findOne(@Param('id') id: string) {
-    return this.attendancesService.findOne(+id);
+    return this.attendanceService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAttendanceDto: UpdateAttendanceDto) {
-    return this.attendancesService.update(+id, updateAttendanceDto);
+  @RequirePermissions(
+    Permission.ATTENDANCE_UPDATE,
+  )
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateAttendanceDto,
+    @CurrentUser() currentUser: User,
+  ) {
+    return this.attendanceService.update(
+      id,
+      dto,
+      currentUser,
+    );
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.attendancesService.remove(+id);
+  @RequirePermissions(
+    Permission.ATTENDANCE_DELETE,
+  )
+  remove(
+    @Param('id') id: string,
+    @CurrentUser() currentUser: User,
+  ) {
+    return this.attendanceService.remove(
+      id,
+      currentUser,
+    );
   }
 }

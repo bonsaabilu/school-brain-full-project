@@ -1,34 +1,81 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { SubjectsService } from './subjects.service';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+
+
+
 import { CreateSubjectDto } from './dto/create-subject.dto';
 import { UpdateSubjectDto } from './dto/update-subject.dto';
 
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PermissionGuard } from '../auth/guards/permission.guard';
+
+import { RequirePermissions } from '../auth/decorators/permissions.decorator';
+
+import { Permission } from '@prisma/client';
+import { SubjectService } from './subjects.service';
+
 @Controller('subjects')
-export class SubjectsController {
-  constructor(private readonly subjectsService: SubjectsService) {}
+@UseGuards(JwtAuthGuard, PermissionGuard)
+export class SubjectController {
+  constructor(
+    private readonly subjectService: SubjectService,
+  ) { }
 
   @Post()
-  create(@Body() createSubjectDto: CreateSubjectDto) {
-    return this.subjectsService.create(createSubjectDto);
+  @RequirePermissions(
+    Permission.SUBJECT_CREATE,
+  )
+  create(
+    @Body() createSubjectDto: CreateSubjectDto,
+  ) {
+    return this.subjectService.create(
+      createSubjectDto,
+    );
   }
 
   @Get()
+  @RequirePermissions(
+    Permission.SUBJECT_READ,
+  )
   findAll() {
-    return this.subjectsService.findAll();
+    return this.subjectService.findAll();
   }
 
   @Get(':id')
+  @RequirePermissions(
+    Permission.SUBJECT_READ,
+  )
   findOne(@Param('id') id: string) {
-    return this.subjectsService.findOne(+id);
+    return this.subjectService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSubjectDto: UpdateSubjectDto) {
-    return this.subjectsService.update(+id, updateSubjectDto);
+  @RequirePermissions(
+    Permission.SUBJECT_UPDATE,
+  )
+  update(
+    @Param('id') id: string,
+    @Body() updateSubjectDto: UpdateSubjectDto,
+  ) {
+    return this.subjectService.update(
+      id,
+      updateSubjectDto,
+    );
   }
 
   @Delete(':id')
+  @RequirePermissions(
+    Permission.SUBJECT_DELETE,
+  )
   remove(@Param('id') id: string) {
-    return this.subjectsService.remove(+id);
+    return this.subjectService.remove(id);
   }
 }

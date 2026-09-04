@@ -6,6 +6,12 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.enableCors({
+    origin: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+  });
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -15,7 +21,9 @@ async function bootstrap() {
   );
   const config = new DocumentBuilder()
     .setTitle('School Management API')
-    .setDescription('Backend REST API documentation for managing schools, students, teachers, and grades.')
+    .setDescription(
+      'Backend REST API documentation for managing schools, students, teachers, and grades.',
+    )
     .setVersion('1.0')
     .addBearerAuth() // Enables JWT authentication token support in Swagger UI
     .build();

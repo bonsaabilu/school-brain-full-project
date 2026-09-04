@@ -1,34 +1,117 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { GradesService } from './grades.service';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+
+import { GradeService } from './grades.service';
+
 import { CreateGradeDto } from './dto/create-grade.dto';
 import { UpdateGradeDto } from './dto/update-grade.dto';
 
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PermissionGuard } from '../auth/guards/permission.guard';
+
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { RequirePermissions } from '../auth/decorators/permissions.decorator';
+
+import { Permission } from '@prisma/client';
+import type { User } from '@prisma/client';
+
 @Controller('grades')
-export class GradesController {
-  constructor(private readonly gradesService: GradesService) {}
+@UseGuards(JwtAuthGuard, PermissionGuard)
+export class GradeController {
+  constructor(
+    private readonly gradeService: GradeService,
+  ) { }
 
   @Post()
-  create(@Body() createGradeDto: CreateGradeDto) {
-    return this.gradesService.create(createGradeDto);
+  @RequirePermissions(
+    Permission.GRADE_CREATE,
+  )
+  create(
+    @Body() dto: CreateGradeDto,
+    @CurrentUser() currentUser: User,
+  ) {
+    return this.gradeService.create(
+      dto,
+      currentUser,
+    );
   }
 
   @Get()
+  @RequirePermissions(
+    Permission.GRADE_READ,
+  )
   findAll() {
-    return this.gradesService.findAll();
+    return this.gradeService.findAll();
+  }
+
+  @Get('student/:studentId')
+  @RequirePermissions(
+    Permission.GRADE_READ,
+  )
+  findByStudent(
+    @Param('studentId') studentId: string,
+  ) {
+    return this.gradeService.findByStudent(
+      studentId,
+    );
+  }
+
+  @Get('class-subject/:classSubjectId')
+  @RequirePermissions(
+    Permission.GRADE_READ,
+  )
+  findByClassSubject(
+    @Param('classSubjectId')
+    classSubjectId: string,
+  ) {
+    return this.gradeService.findByClassSubject(
+      classSubjectId,
+    );
   }
 
   @Get(':id')
+  @RequirePermissions(
+    Permission.GRADE_READ,
+  )
   findOne(@Param('id') id: string) {
-    return this.gradesService.findOne(+id);
+    return this.gradeService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateGradeDto: UpdateGradeDto) {
-    return this.gradesService.update(+id, updateGradeDto);
+  @RequirePermissions(
+    Permission.GRADE_UPDATE,
+  )
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateGradeDto,
+    @CurrentUser() currentUser: User,
+  ) {
+    return this.gradeService.update(
+      id,
+      dto,
+      currentUser,
+    );
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.gradesService.remove(+id);
+  @RequirePermissions(
+    Permission.GRADE_DELETE,
+  )
+  remove(
+    @Param('id') id: string,
+    @CurrentUser() currentUser: User,
+  ) {
+    return this.gradeService.remove(
+      id,
+      currentUser,
+    );
   }
 }

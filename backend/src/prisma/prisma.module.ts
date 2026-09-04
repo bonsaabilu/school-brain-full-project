@@ -4,7 +4,7 @@ import { PrismaService } from './prisma.service';
 
 @Global() // Making it global avoids having to import PrismaModule in every feature module
 @Module({
-    providers: [PrismaService],
-    exports: [PrismaService],
+  providers: [PrismaService],
+  exports: [PrismaService],
 })
-export class PrismaModule { }
+export class PrismaModule {}
